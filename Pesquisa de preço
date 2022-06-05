@@ -1,0 +1,68 @@
+df = pd.DataFrame(columns = ['Produto' , 'Preço_Loja1', 'Preço_Loja2', 'Preço_Loja3'])
+with open("Lista_produtos.txt", "r") as f:
+    asins = f.read().split("\n")
+for asin in asins: 
+    df.loc[i,["Produto"]] = [asin]
+    i = i + 1
+
+s = HTMLSession()
+asins = []
+i = 1
+
+with open("asins_loja1.txt", "r") as f:
+    asins = f.read().split("\n")
+   
+for asin in asins:
+    if asin == "NaN":
+        df.loc[i,["Preço_Loja1"]]=[asin]
+        i = i + 1
+    else:    
+        r = s.get(f'https://www.Loja1.com.br/{asin})
+        price = r.html.find('.sale_price', first=True).text.split("\n")[0]
+        preço = price.split(" ")
+        df.loc[i,["Preço_Loja1"]]=[preço[1]]
+        i = i + 1
+                  
+                  
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options                
+
+options.add_argument("--headless")
+asins = []
+i = 1
+with open("asins_Loja2.txt", "r") as f:
+    asins = f.read().split("\n")
+for asin in asins:
+    if asin == "NaN":
+        df.loc[i,["Preço_Loja2"]] = [asin]
+        i= i + 1
+    else:    
+        driver = webdriver.Chrome(options=options)
+        url = (f'https://www.Loja2.com.br/{asin}')
+        driver.get(url)
+        driver.implicitly_wait(10)
+        preço = driver.find_element(By.XPATH, './/*[@id="product"]/div/app-tag-preco/div/div[2]').text.split(" ")
+        df.loc[i,["Preço_Loja2"]] = (preço[1])
+        i = i + 1
+
+
+asins = []
+i = 1
+with open("asin_Loja3.txt", "r") as f:
+    asins = f.read().split("\n")
+for asin in asins:
+    if asin == "NaN":
+        df.loc[i,["Preço_Loja3"]]=[asin]
+        i = i + 1
+    else:    
+        url = (f'https://www.Loja3.com{asin}')
+        r = requests.get(url)
+        html_soup = BeautifulSoup(r.text, 'html.parser')
+        item = html_soup.find('div', class_ = 'current-pricesectionstyles__CurrentPrice-sc-17j9p6i-0 drikI')
+        item_text = item.get_text(strip = True)
+        preço = item_text.split(" ")
+        df.loc[i,["Preço_Loja3"]] = (preço[1])
+        i = i + 1
+file_name = 'Pesquisa_de_preço.xlsx'
+df.to_excel(file_name)
